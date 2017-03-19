@@ -204,10 +204,11 @@ void World::TriggerGuidWarning()
     // Lock this only to prevent multiple maps triggering at the same time
     std::lock_guard<std::mutex> lock(_guidAlertLock);
 
-    time_t today = (m_gameTime / DAY) * DAY;
+    time_t gameTime = GameTime::GetGameTime();
+    time_t today = (gameTime / DAY) * DAY;
 
     // Check if our window to restart today has passed. 5 mins until quiet time
-    while (m_gameTime >= (today + (m_int_configs[CONFIG_RESPAWN_RESTARTQUIETTIME]) * HOUR) - 1810)
+    while (gameTime >= (today + (m_int_configs[CONFIG_RESPAWN_RESTARTQUIETTIME]) * HOUR) - 1810)
         today += DAY;
 
     // Schedule restart for 30 minutes before quiet time, or as long as we have
@@ -2403,7 +2404,7 @@ void World::Update(uint32 diff)
     if (guidWarn && !guidAlert)
     {
         warnDiff += diff;
-        if (m_gameTime >= warnShutdownTime)
+        if (GameTime::GetGameTime() >= warnShutdownTime)
             DoGuidWarningRestart();
         else if (warnDiff > (m_int_configs[CONFIG_RESPAWN_GUIDWARNING_FREQUENCY]) * IN_MILLISECONDS)
             SendGuidWarning();
