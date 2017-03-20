@@ -12,7 +12,7 @@ RUN mkdir -p /data/TrinityCore/build
 ADD . /data/TrinityCore
 WORKDIR /data/TrinityCore/build
 RUN cmake ../ -DCMAKE_INSTALL_PREFIX=/data/TrinityCore.install -DTOOLS=1 \
- && nice -n 20 make -j $(nproc) install && cp /tmp/buildDockerFile /data/Dockerfile
+ && nice -n 20 make -j $(nproc) install
 
 WORKDIR /data/TrinityCore.install/bin
 
