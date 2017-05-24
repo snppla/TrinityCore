@@ -1,4 +1,4 @@
-FROM snppla/trinity_core
+FROM snppla/trinity_base
 
 ADD . /data/TrinityCore
 WORKDIR /data/TrinityCore/build
