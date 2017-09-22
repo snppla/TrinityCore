@@ -40,6 +40,7 @@
 #include "Log.h"
 #include "LootMgr.h"
 #include "MotionMaster.h"
+#include "MovementGenerator.h"
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "ObjectAccessor.h"
@@ -3391,7 +3392,8 @@ void Unit::ProcessTerrainStatusUpdate(ZLiquidStatus status, Optional<LiquidData>
     {
         if (_lastLiquid && _lastLiquid->SpellId)
             RemoveAurasDueToSpell(_lastLiquid->SpellId);
-        if (curLiquid && curLiquid->SpellId)
+        Player* player = GetCharmerOrOwnerPlayerOrPlayerItself();
+        if (curLiquid && curLiquid->SpellId && (!player || !player->IsGameMaster()))
             CastSpell(this, curLiquid->SpellId, true);
         _lastLiquid = curLiquid;
     }
@@ -9681,11 +9683,10 @@ Unit* Creature::SelectVictim()
 
     // last case when creature must not go to evade mode:
     // it in combat but attacker not make any damage and not enter to aggro radius to have record in threat list
-    // for example at owner command to pet attack some far away creature
     // Note: creature does not have targeted movement generator but has attacker in this case
     for (AttackerSet::const_iterator itr = m_attackers.begin(); itr != m_attackers.end(); ++itr)
     {
-        if ((*itr) && !CanCreatureAttack(*itr) && (*itr)->GetTypeId() != TYPEID_PLAYER
+        if ((*itr) && CanCreatureAttack(*itr) && (*itr)->GetTypeId() != TYPEID_PLAYER
         && !(*itr)->ToCreature()->HasUnitTypeMask(UNIT_MASK_CONTROLABLE_GUARDIAN))
             return nullptr;
     }
@@ -11405,6 +11406,26 @@ void Unit::StopMoving()
     init.Stop();
 }
 
+void Unit::PauseMovement(uint32 timer/* = 0*/, uint8 slot/* = 0*/)
+{
+    if (slot >= MAX_MOTION_SLOT)
+        return;
+
+    if (MovementGenerator* movementGenerator = GetMotionMaster()->GetMotionSlot(slot))
+        movementGenerator->Pause(timer);
+
+    StopMoving();
+}
+
+void Unit::ResumeMovement(uint32 timer/* = 0*/, uint8 slot/* = 0*/)
+{
+    if (slot >= MAX_MOTION_SLOT)
+        return;
+
+    if (MovementGenerator* movementGenerator = GetMotionMaster()->GetMotionSlot(slot))
+        movementGenerator->Resume(timer);
+}
+
 void Unit::SendMovementFlagUpdate(bool self /* = false */)
 {
     WorldPacket data;
@@ -12595,8 +12616,14 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
 
     if (GetTypeId() == TYPEID_UNIT)
     {
+        if (MovementGenerator* movementGenerator = GetMotionMaster()->GetMotionSlot(MOTION_SLOT_IDLE))
+            movementGenerator->Pause(0);
+
+        GetMotionMaster()->Clear(MOTION_SLOT_ACTIVE);
+
+        StopMoving();
+
         ToCreature()->AI()->OnCharmed(true);
-        GetMotionMaster()->MoveIdle();
     }
     else if (Player* player = ToPlayer())
     {
@@ -12710,6 +12737,7 @@ void Unit::RemoveCharmedBy(Unit* charmer)
     else
         RestoreFaction();
 
+    ///@todo Handle SLOT_IDLE motion resume
     GetMotionMaster()->InitDefault();
 
     if (Creature* creature = ToCreature())
