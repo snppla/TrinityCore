@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -88,6 +88,9 @@ inline T RoundToInterval(T& num, T floor, T ceil)
 {
     return num = std::min(std::max(num, floor), ceil);
 }
+
+template <class T>
+inline T square(T x) { return x*x; }
 
 // UTF8 handling
 TC_COMMON_API bool Utf8toWStr(const std::string& utf8str, std::wstring& wstr);

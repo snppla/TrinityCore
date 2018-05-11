@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -19,18 +19,19 @@
 #include "HomeMovementGenerator.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "MotionMaster.h"
+#include "MovementDefines.h"
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "PathGenerator.h"
 
 template<class T>
-HomeMovementGenerator<T>::~HomeMovementGenerator() { }
-
-template<>
-HomeMovementGenerator<Creature>::~HomeMovementGenerator()
+MovementGeneratorType HomeMovementGenerator<T>::GetMovementGeneratorType() const
 {
-    delete _path;
+    return HOME_MOTION_TYPE;
 }
+
+template MovementGeneratorType HomeMovementGenerator<Creature>::GetMovementGeneratorType() const;
 
 template<class T>
 void HomeMovementGenerator<T>::SetTargetLocation(T*) { }
@@ -52,6 +53,7 @@ void HomeMovementGenerator<Creature>::SetTargetLocation(Creature* owner)
         owner->GetHomePosition(x, y, z, o);
         init.SetFacing(o);
     }
+    owner->UpdateAllowedPositionZ(x, y, z);
     init.MoveTo(x, y, z);
     init.SetWalk(false);
     init.Launch();

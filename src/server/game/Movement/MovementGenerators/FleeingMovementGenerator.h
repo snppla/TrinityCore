@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -20,16 +20,22 @@
 #define TRINITY_FLEEINGMOVEMENTGENERATOR_H
 
 #include "MovementGenerator.h"
+#include "ObjectGuid.h"
 #include "Timer.h"
+
+class Creature;
+class PathGenerator;
+struct Position;
 
 template<class T>
 class FleeingMovementGenerator : public MovementGeneratorMedium< T, FleeingMovementGenerator<T> >
 {
     public:
-        explicit FleeingMovementGenerator(ObjectGuid fleeTargetGUID) : _path(nullptr), _fleeTargetGUID(fleeTargetGUID), _timer(0), _interrupt(false) { }
+        explicit FleeingMovementGenerator(ObjectGuid fleeTargetGUID) : _fleeTargetGUID(fleeTargetGUID), _timer(0), _interrupt(false) { }
         ~FleeingMovementGenerator();
 
-        MovementGeneratorType GetMovementGeneratorType() const override { return FLEEING_MOTION_TYPE; }
+        MovementGeneratorType GetMovementGeneratorType() const override;
+        void UnitSpeedChanged() override { } //TODO
 
         void DoInitialize(T*);
         void DoFinalize(T*);
@@ -40,7 +46,7 @@ class FleeingMovementGenerator : public MovementGeneratorMedium< T, FleeingMovem
         void SetTargetLocation(T*);
         void GetPoint(T*, Position &position);
 
-        PathGenerator* _path;
+        std::unique_ptr<PathGenerator> _path;
         ObjectGuid _fleeTargetGUID;
         TimeTracker _timer;
         bool _interrupt;
@@ -51,7 +57,7 @@ class TimedFleeingMovementGenerator : public FleeingMovementGenerator<Creature>
     public:
         explicit TimedFleeingMovementGenerator(ObjectGuid fleeTargetGUID, uint32 time) : FleeingMovementGenerator<Creature>(fleeTargetGUID), _totalFleeTime(time) { }
 
-        MovementGeneratorType GetMovementGeneratorType() const override { return TIMED_FLEEING_MOTION_TYPE; }
+        MovementGeneratorType GetMovementGeneratorType() const override;
         bool Update(Unit*, uint32) override;
         void Finalize(Unit*) override;
 

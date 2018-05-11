@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,15 +16,23 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CreatureAI.h"
-#include "Creature.h"
-#include "Player.h"
-#include "MoveSplineInit.h"
-#include "MoveSpline.h"
-#include "World.h"
 #include "PointMovementGenerator.h"
+#include "Creature.h"
+#include "CreatureAI.h"
+#include "Player.h"
+#include "MotionMaster.h"
+#include "MovementDefines.h"
+#include "MoveSpline.h"
+#include "MoveSplineInit.h"
+#include "World.h"
 
 //----- Point Movement Generator
+
+template<class T>
+MovementGeneratorType PointMovementGenerator<T>::GetMovementGeneratorType() const
+{
+    return POINT_MOTION_TYPE;
+}
 
 template<class T>
 void PointMovementGenerator<T>::DoInitialize(T* owner)
@@ -50,6 +58,10 @@ void PointMovementGenerator<T>::DoInitialize(T* owner)
     init.MoveTo(_x, _y, _z , _generatePath);
     if (_speed > 0.0f)
         init.SetVelocity(_speed);
+
+    if (_finalOrient)
+        init.SetFacing(*_finalOrient);
+
     init.Launch();
 
     // Call for creature group update
@@ -120,6 +132,8 @@ void PointMovementGenerator<Creature>::MovementInform(Creature* owner)
         owner->AI()->MovementInform(POINT_MOTION_TYPE, _movementId);
 }
 
+template MovementGeneratorType PointMovementGenerator<Player>::GetMovementGeneratorType() const;
+template MovementGeneratorType PointMovementGenerator<Creature>::GetMovementGeneratorType() const;
 template void PointMovementGenerator<Player>::DoInitialize(Player*);
 template void PointMovementGenerator<Creature>::DoInitialize(Creature*);
 template void PointMovementGenerator<Player>::DoFinalize(Player*);
@@ -131,6 +145,11 @@ template bool PointMovementGenerator<Creature>::DoUpdate(Creature*, uint32);
 
 //---- AssistanceMovementGenerator
 
+MovementGeneratorType AssistanceMovementGenerator::GetMovementGeneratorType() const
+{
+    return ASSISTANCE_MOTION_TYPE;
+}
+
 void AssistanceMovementGenerator::Finalize(Unit* owner)
 {
     owner->ClearUnitState(UNIT_STATE_ROAMING);
@@ -139,23 +158,4 @@ void AssistanceMovementGenerator::Finalize(Unit* owner)
     owner->ToCreature()->CallAssistance();
     if (owner->IsAlive())
         owner->GetMotionMaster()->MoveSeekAssistanceDistract(sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_DELAY));
-}
-
-//---- EffectMovementGenerator
-
-bool EffectMovementGenerator::Update(Unit* owner, uint32 /*diff*/)
-{
-    return !owner->movespline->Finalized();
-}
-
-void EffectMovementGenerator::Finalize(Unit* owner)
-{
-    MovementInform(owner);
-}
-
-void EffectMovementGenerator::MovementInform(Unit* owner)
-{
-    if (Creature* creature = owner->ToCreature())
-        if (creature->AI())
-            creature->AI()->MovementInform(EFFECT_MOTION_TYPE, _pointId);
 }

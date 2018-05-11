@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -156,7 +156,7 @@ public:
             instance->SetBossState(DATA_FELMYST, NOT_STARTED);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             events.ScheduleEvent(EVENT_BERSERK, 600000);
 
@@ -217,7 +217,7 @@ public:
                     summon->CastSpell(summon, SPELL_FOG_CHARM, true);
                     summon->CastSpell(summon, SPELL_FOG_CHARM2, true);
                 }
-                me->DealDamage(caster, caster->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                Unit::DealDamage(me, caster, caster->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             }
         }
 
@@ -361,7 +361,7 @@ public:
                     break;
                 }
                 case 6:
-                    me->SetFacingTo(me->GetAngle(breathX, breathY));
+                    me->SetFacingTo(me->GetAbsoluteAngle(breathX, breathY));
                     //DoTextEmote("takes a deep breath.", nullptr);
                     events.ScheduleEvent(EVENT_FLIGHT_SEQUENCE, 10000);
                     break;
@@ -529,7 +529,7 @@ public:
         }
 
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             DoZoneInCombat();
             //DoCast(me, SPELL_VAPOR_FORCE, true); core bug
@@ -565,7 +565,7 @@ public:
         }
 
         void Reset() override { }
-        void EnterCombat(Unit* /*who*/) override { }
+        void JustEngagedWith(Unit* /*who*/) override { }
         void AttackStart(Unit* /*who*/) override { }
         void MoveInLineOfSight(Unit* /*who*/) override { }
 

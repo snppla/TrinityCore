@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -158,7 +158,7 @@ class boss_lord_marrowgar : public CreatureScript
                 _boneSpikeImmune.clear();
             }
 
-            void EnterCombat(Unit* /*who*/) override
+            void JustEngagedWith(Unit* /*who*/) override
             {
                 Talk(SAY_AGGRO);
 
@@ -310,9 +310,9 @@ class boss_lord_marrowgar : public CreatureScript
                 return ObjectGuid::Empty;
             }
 
-            void SetGUID(ObjectGuid guid, int32 type /*= 0 */) override
+            void SetGUID(ObjectGuid const& guid, int32 id) override
             {
-                switch (type)
+                switch (id)
                 {
                     case DATA_COLDFLAME_GUID:
                         _coldflameTarget = guid;
@@ -379,9 +379,9 @@ class npc_coldflame : public CreatureScript
 
                 if (owner->HasAura(SPELL_BONE_STORM))
                 {
-                    float ang = Position::NormalizeOrientation(pos.GetAngle(me));
+                    float ang = pos.GetAbsoluteAngle(me);
                     me->SetOrientation(ang);
-                    owner->GetNearPoint2D(pos.m_positionX, pos.m_positionY, 5.0f - owner->GetCombatReach(), ang);
+                    owner->GetNearPoint2D(nullptr, pos.m_positionX, pos.m_positionY, 5.0f - owner->GetCombatReach(), ang);
                 }
                 else
                 {
@@ -392,9 +392,9 @@ class npc_coldflame : public CreatureScript
                         return;
                     }
 
-                    float ang = Position::NormalizeOrientation(pos.GetAngle(target));
+                    float ang = pos.GetAbsoluteAngle(target);
                     me->SetOrientation(ang);
-                    owner->GetNearPoint2D(pos.m_positionX, pos.m_positionY, 15.0f - owner->GetCombatReach(), ang);
+                    owner->GetNearPoint2D(nullptr, pos.m_positionX, pos.m_positionY, 15.0f - owner->GetCombatReach(), ang);
                 }
 
                 me->NearTeleportTo(pos.GetPositionX(), pos.GetPositionY(), me->GetPositionZ(), me->GetOrientation());
@@ -473,7 +473,7 @@ class npc_bone_spike : public CreatureScript
                 Movement::MoveSplineInit init(passenger);
                 init.DisableTransportPathTransformations();
                 init.MoveTo(-0.02206125f, -0.02132235f, 5.514783f, false);
-                init.Launch();
+                passenger->GetMotionMaster()->LaunchMoveSpline(std::move(init), EVENT_VEHICLE_BOARD, MOTION_SLOT_CONTROLLED);
             }
 
             void UpdateAI(uint32 diff) override

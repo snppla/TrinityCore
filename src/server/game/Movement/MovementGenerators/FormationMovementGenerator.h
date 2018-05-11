@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,13 +19,16 @@
 #define TRINITY_FORMATIONMOVEMENTGENERATOR_H
 
 #include "MovementGenerator.h"
+#include "Position.h"
+
+class Creature;
 
 class FormationMovementGenerator : public MovementGeneratorMedium< Creature, FormationMovementGenerator >
 {
     public:
         explicit FormationMovementGenerator(uint32 id, Position destination, uint32 moveType, bool run, bool orientation) : _movementId(id), _destination(destination), _moveType(moveType), _run(run), _orientation(orientation), _recalculateSpeed(false), _interrupt(false) { }
 
-        MovementGeneratorType GetMovementGeneratorType() const override { return FORMATION_MOTION_TYPE; }
+        MovementGeneratorType GetMovementGeneratorType() const override;
 
         void DoInitialize(Creature*);
         void DoFinalize(Creature*);

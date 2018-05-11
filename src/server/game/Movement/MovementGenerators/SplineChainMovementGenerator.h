@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,17 +20,22 @@
 
 #include "SplineChain.h"
 #include "MovementGenerator.h"
+#include <vector>
+
+class Unit;
 
 class TC_GAME_API SplineChainMovementGenerator : public MovementGenerator
 {
     public:
         explicit SplineChainMovementGenerator(uint32 id, std::vector<SplineChainLink> const& chain, bool walk = false) : _id(id), _chain(chain), _chainSize(chain.size()), _walk(walk), finished(false), _nextIndex(0), _nextFirstWP(0), _msToNext(0) { }
         explicit SplineChainMovementGenerator(SplineChainResumeInfo const& info) : _id(info.PointID), _chain(*info.Chain), _chainSize(info.Chain->size()), _walk(info.IsWalkMode), finished(info.SplineIndex >= info.Chain->size()), _nextIndex(info.SplineIndex), _nextFirstWP(info.PointIndex), _msToNext(info.TimeToNext) { }
+
         void Initialize(Unit* me) override;
         void Finalize(Unit* me) override;
         void Reset(Unit* /*me*/) override { };
         bool Update(Unit* me, uint32 diff) override;
-        MovementGeneratorType GetMovementGeneratorType() const override { return SPLINE_CHAIN_MOTION_TYPE; }
+        MovementGeneratorType GetMovementGeneratorType() const override;
+
         // Builds info that can later be used to resume this spline chain movement at the current position
         static void GetResumeInfo(Unit const* me, SplineChainResumeInfo& info);
         // Leaving the object method public for people that know what they're doing to use
